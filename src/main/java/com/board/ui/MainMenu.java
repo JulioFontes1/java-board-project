@@ -31,7 +31,7 @@ public class MainMenu {
                 case 1 -> createBoard();
                 case 2 -> selectBoard();
                 case 3 -> deleteBoard();
-                case 4 -> System.exit(0);
+                case 4 -> System.exit(1);
                 default -> System.out.println("Opção inválida!");
             }
         }
@@ -44,7 +44,9 @@ public class MainMenu {
 
         System.out.println("Seu board terá colunas além das 3 padrões? Se sim informe quantas, se não digite 0");
         var additionalColumns = scanner.nextInt();
-
+        if(additionalColumns == 0){
+            additionalColumns = 1;
+        }
         List<BoardColumnEntity> columns = new ArrayList<>();
 
         System.out.println("Informe o nome da coluna inicial");
@@ -82,7 +84,13 @@ public class MainMenu {
         try(var connection = getConnection()){
            var queryService = new BoardQueryService(connection);
            var optional = queryService.findById(id);
-           optional.ifPresentOrElse(b -> new BoardMenu(b).execute(), () -> System.out.printf("O board %s não foi encontrado\n", id));
+           optional.ifPresentOrElse(b -> {
+               try {
+                   new BoardMenu(b).execute();
+               } catch (SQLException e) {
+                   throw new RuntimeException(e);
+               }
+           }, () -> System.out.printf("O board %s não foi encontrado\n", id));
         }
     }
 
